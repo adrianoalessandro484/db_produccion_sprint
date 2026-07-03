@@ -1,0 +1,38 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: erp-db-produccion-postgres
+    environment:
+      POSTGRES_USER: adriano
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: db_produccion
+    ports:
+      - "5435:5432"
+    volumes:
+      - db_produccion_data:/var/lib/postgresql/data
+    networks:
+      - erp-db-produccion-network
+    restart: unless-stopped
+    command: ["postgres", "-c", "timezone=America/Lima"]
+
+  app:
+    image: eclipse-temurin:17-jre
+    container_name: erp-ms-produccion
+    depends_on:
+      - postgres
+    ports:
+      - "8083:8083"
+    volumes:
+      - ./target:/app
+    working_dir: /app
+    command: ["java", "-jar", "db_produccion-0.0.1-SNAPSHOT.jar"]
+    networks:
+      - erp-db-produccion-network
+    restart: unless-stopped
+
+volumes:
+  db_produccion_data:
+
+networks:
+  erp-db-produccion-network:
+    driver: bridge
